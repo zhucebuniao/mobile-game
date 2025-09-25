@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Hero</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .word-display {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .input-area {
+            margin-bottom: 2rem;
+        }
+        
+        .word-input {
+            font-size: 1.5rem;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+            outline: none;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+        
+        .start-btn, .restart-btn {
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            min-height: 48px;
+            min-width: 48px;
+        }
+        
+        .start-btn:hover, .restart-btn:hover {
+            background: #45a049;
+        }
+        
+        .timer {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        
+        .game-over {
+            background: rgba(0,0,0,0.8);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 2rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 600px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .word-display {
+                font-size: 2rem;
+                min-height: 80px;
+            }
+            
+            .word-input {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">Typing Hero</h1>
+        
+        <div id="gameArea" class="hidden">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="timer">Time: <span id="timer">60</span>s</div>
+            <div class="word-display" id="wordDisplay">Get Ready!</div>
+            <div class="input-area">
+                <input type="text" id="wordInput" class="word-input" placeholder="Type the word..." disabled>
+            </div>
+        </div>
+        
+        <div id="startScreen">
+            <p style="margin-bottom: 2rem; font-size: 1.2rem; opacity: 0.9;">
+                Type the words as fast as you can!<br>
+                You have 60 seconds to score as many points as possible.
+            </p>
+            <button id="startBtn" class="start-btn">Start Game</button>
+        </div>
+        
+        <div id="gameOverScreen" class="game-over hidden">
+            <h2 style="margin-bottom: 1rem;">Game Over!</h2>
+            <p id="finalScore" style="font-size: 1.5rem; margin-bottom: 1rem;"></p>
+            <button id="restartBtn" class="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        class TypingGame {
+            constructor() {
+                this.words = [
+                    'cat', 'dog', 'bird', 'fish', 'tree', 'book', 'lamp', 'door', 'window', 'chair',
+                    'table', 'phone', 'mouse', 'keyboard', 'screen', 'paper', 'pencil', 'water', 'coffee', 'music',
+                    'happy', 'quick', 'bright', 'strong', 'gentle', 'brave', 'smart', 'funny', 'kind', 'cool',
+                    'running', 'jumping', 'singing', 'dancing', 'reading', 'writing', 'playing', 'walking', 'talking', 'smiling',
+                    'beautiful', 'wonderful', 'amazing', 'fantastic', 'excellent', 'perfect', 'awesome', 'brilliant', 'marvelous', 'outstanding'
+                ];
+                this.score = 0;
+                this.timeLeft = 60;
+                this.currentWord = '';
+                this.gameActive = false;
+                this.timer = null;
+                
+                this.initElements();
+                this.bindEvents();
+            }
+            
+            initElements() {
+                this.startScreen = document.getElementById('startScreen');
+                this.gameArea = document.getElementById('gameArea');
+                this.gameOverScreen = document.getElementById('gameOverScreen');
+                this.startBtn = document.getElementById('startBtn');
+                this.restartBtn = document.getElementById('restartBtn');
+                this.wordDisplay = document.getElementById('wordDisplay');
+                this.wordInput = document.getElementById('wordInput');
+                this.scoreDisplay = document.getElementById('score');
+                this.timerDisplay = document.getElementById('timer');
+                this.finalScoreDisplay = document.getElementById('finalScore');
+            }
+            
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.startGame());
+                this.restartBtn.addEventListener('click', () => this.restartGame());
+                this.wordInput.addEventListener('input', (e) => this.checkWord(e.target.value));
+                this.wordInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.checkWord(e.target.value);
+                    }
+                });
+            }
+            
+            startGame() {
+                this.score = 0;
+                this.timeLeft = 60;
+                this.gameActive = true;
+                
+                this.startScreen.classList.add('hidden');
+                this.gameArea.classList.remove('hidden');
+                this.gameOverScreen.classList.add('hidden');
+                
+                this.wordInput.disabled = false;
+                this.wordInput.focus();
+                
+                this.updateScore();
+                this.updateTimer();
+                this.newWord();
+                
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateTimer();
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+            }
+            
+            endGame() {
+                this.gameActive = false;
+                clearInterval(this.timer);
+                
+                this.wordInput.disabled = true;
+                this.gameArea.classList.add('hidden');
+                this.gameOverScreen.classList.remove('hidden');
+                
+                this.finalScoreDisplay.textContent = `Your score: ${this.score} points!`;
+                
+                // Send score to parent window
+                if (window.parent !== window) {
+                    window.parent.postMessage({ 
+                        type: 'END', 
+                        score: this.score 
+                    }, '*');
+                }
+            }
+            
+            restartGame() {
+                this.startGame();
+            }
+            
+            newWord() {
+                this.currentWord = this.words[Math.floor(Math.random() * this.words.length)];
+                this.wordDisplay.textContent = this.currentWord;
+                this.wordInput.value = '';
+            }
+            
+            checkWord(input) {
+                if (!this.gameActive) return;
+                
+                if (input.toLowerCase().trim() === this.currentWord.toLowerCase()) {
+                    this.score += this.currentWord.length * 10;
+                    this.updateScore();
+                    this.newWord();
+                    
+                    // Add visual feedback
+                    this.wordDisplay.style.background = 'rgba(76, 175, 80, 0.3)';
+                    setTimeout(() => {
+                        this.wordDisplay.style.background = 'rgba(255,255,255,0.1)';
+                    }, 200);
+                }
+            }
+            
+            updateScore() {
+                this.scoreDisplay.textContent = this.score;
+            }
+            
+            updateTimer() {
+                this.timerDisplay.textContent = this.timeLeft;
+                
+                if (this.timeLeft <= 10) {
+                    this.timerDisplay.style.color = '#ff4444';
+                } else {
+                    this.timerDisplay.style.color = 'white';
+                }
+            }
+        }
+        
+        // Initialize the game when the page loads
+        window.addEventListener('load', () => {
+            new TypingGame();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+[
+  {
+    "id": "typing-hero",
+    "title": "Typing Hero",
+    "description": "Type words quickly to score points. Test your typing speed and accuracy in this fast-paced word game.",
+    "thumbnail": "/img/typing-hero-thumb.svg",
+    "entry": "/games/typing-hero/index.html"
+  }
+]
