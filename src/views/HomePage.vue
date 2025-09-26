@@ -524,10 +524,12 @@ export default {
   max-height: 60vh;
   overflow-y: auto;
   backdrop-filter: blur(20px);
+  pointer-events: none;
 }
 
 .game-selection.revealed {
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 .selection-header {
