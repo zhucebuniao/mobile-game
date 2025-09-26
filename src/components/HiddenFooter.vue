@@ -231,10 +231,12 @@ export default {
   z-index: 100;
   max-height: 70vh;
   overflow-y: auto;
+  pointer-events: none;
 }
 
 .hidden-footer.visible {
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 .footer-content {
